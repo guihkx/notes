@@ -155,7 +155,18 @@ jobs:
           if (!$x64_build) {
               Throw 'Could not find a 64-bit Qt 6 build.'
           }
-          Move-Item $x64_build Notes64
+          Move-Item $x64_build Notes64_Qt6
+
+      - name: Ensure a 64-bit Qt 5 build is present
+        run: |
+          Set-Location artifacts
+          $x64_build = Get-ChildItem -Filter '*Qt5*-x64-Windows-release' -Attributes Directory |
+              Sort-Object -Property @{Expression = "Name"; Descending = $true} |
+              Select-Object -First 1
+          if (!$x64_build) {
+              Throw 'Could not find a 64-bit Qt 5 build.'
+          }
+          Move-Item $x64_build Notes64_Qt5
 
       - name: Ensure a 32-bit Qt 5 build is present
         run: |
@@ -166,7 +177,7 @@ jobs:
           if (!$x86_build) {
               Throw 'Could not find a 32-bit Qt 5 build.'
           }
-          Move-Item $x86_build Notes32
+          Move-Item $x86_build Notes32_Qt5
 
       - name: Create unified installer
         run: |
