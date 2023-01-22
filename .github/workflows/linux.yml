@@ -115,6 +115,9 @@ jobs:
         # - curl: Used to download the linuxdeploy AppImage tool.
         # - git: To clone this repository.
         # - libfontconfig1: Used as dependency of the resulting AppImage.
+        # - libwayland-cursor0: Used as dependency of the resulting AppImage.
+        # - libwayland-egl1: Used as dependency of the resulting AppImage.
+        # - libxcomposite1: Used as dependency of the resulting AppImage (Qt 5 only).
         # - python3/python3-pip: Used by aqtinstall.
         # - sudo: Used by most GitHub actions to install things.
         if: matrix.container != ''
@@ -124,7 +127,7 @@ jobs:
           echo UTC > /etc/timezone
           # install packages
           apt update
-          apt install -y cmake curl git libfontconfig1 python3 python3-pip sudo
+          apt install -y cmake curl git libfontconfig1 libwayland-cursor0 libwayland-egl1 libxcomposite1 python3 python3-pip sudo
           # Upgrade to the latest setuptools, as Ubuntu's python3-setuptools package has compatibility issues with aqtinstall.
           python3 -m pip install --upgrade setuptools
 
@@ -163,6 +166,7 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           version: ${{ matrix.qt-version }}
+          modules: qtwaylandcompositor
           # Prevents the installation of a custom Python build, potentially linked against an unsupported version of glibc.
           setup-python: false
           cache: true
@@ -217,15 +221,32 @@ jobs:
           sudo apt install -y libpq5 libodbc1
 
       - name: Build AppImage (${{ matrix.build-type }})
+        shell: bash
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
+          VERSION: ${{ steps.vars.outputs.version }}
         run: |
+          set -x
           cd build
           install -Dm644 -t Notes/usr/share/applications ../packaging/linux/common/notes.desktop
           mkdir -p Notes/usr/share/icons/hicolor
           cp -r ../packaging/linux/common/icons/* Notes/usr/share/icons/hicolor
-          export VERSION='${{ steps.vars.outputs.version }}'
-          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage --plugin qt
+          if [[ '${{ matrix.qt-version }}' == 6.* ]]
+          then
+              # Qt 6 Wayland platform plugins.
+              export EXTRA_PLATFORM_PLUGINS='libqwayland-egl.so;libqwayland-generic.so'
+          else
+              # Qt 5 Wayland platform plugins.
+              export EXTRA_PLATFORM_PLUGINS='libqwayland-egl.so;libqwayland-generic.so;libqwayland-xcomposite-egl.so;libqwayland-xcomposite-glx.so'
+          fi
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --plugin qt
+          # NOTE: We have to copy extra Wayland plugins manually, as linuxdeploy doesn't have a way to do that.
+          # See: https://github.com/linuxdeploy/linuxdeploy-plugin-qt/issues/121
+          for plugin in wayland-decoration-client wayland-graphics-integration-client wayland-shell-integration
+          do
+              cp -rv ${{ env.QT_PLUGIN_PATH }}/$plugin Notes/usr/plugins
+          done
+          ./linuxdeploy-x86_64.AppImage --appdir Notes --output appimage
           mv Notes*.AppImage '${{ steps.vars.outputs.file_name }}'
 
       - name: Upload AppImage artifact (${{ matrix.build-type }})
