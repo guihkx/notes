@@ -201,7 +201,36 @@ void MainWindow::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason rea
  */
 void MainWindow::setMainWindowVisibility(bool state)
 {
+    qDebug() << "Will" << (state ? "show" : "hide") << "window. Current State:" << windowState();
     if (state) {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+        // HACK: On Linux (tested on GNOME 43 and KDE Plasma 5.26, both on a X11 session),
+        // the window manager doesn't allow us to steal focus if we're minimized or in the
+        // background. We bypass that by hiding our window first, and then restoring it
+        // immediatelly.
+        if (windowState() & Qt::WindowMinimized || windowState() == Qt::WindowNoState) {
+            qDebug() << "[HACK] Hiding window before showing it.";
+            hide();
+        }
+#elif defined(Q_OS_WINDOWS)
+        // HACK: Similarly as above, Windows also doesn't allow a minimized window to steal focus.
+        // We bypass that by replacing the WindowMinimized state flag by the WindowActive one.
+        if (windowState() & Qt::WindowMinimized) {
+            qDebug() << "[HACK] Changing window state from 'minimized' to 'active'.";
+            setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        }
+#elif defined(Q_OS_MAC)
+        // HACK: On my tests, macOS window states behaved really weird. After closing the window
+        // for a second time, its state was permanently set to WindowActive, even when the
+        // window was in the background or hidden to the dock.
+        if (windowState() == Qt::WindowActive || windowState() == Qt::WindowNoState) {
+            qDebug() << "[HACK] Hiding window before showing it.";
+            hide();
+        } else if (windowState() & Qt::WindowMinimized) {
+            qDebug() << "[HACK] Changing window state from 'minimized' to 'active'.";
+            setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        }
+#endif
         show();
         raise();
         activateWindow();
@@ -517,13 +546,6 @@ void MainWindow::setupKeyboardShortcuts()
         m_searchEdit->setDisabled(true);
         setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
                                 || qApp->applicationState() == Qt::ApplicationInactive);
-        if (isHidden() || windowState() == Qt::WindowMinimized
-            || qApp->applicationState() == Qt::ApplicationInactive)
-#ifdef __APPLE__
-            this->raise();
-#else
-            this->activateWindow();
-#endif
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
