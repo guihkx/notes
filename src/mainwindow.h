@@ -137,7 +137,7 @@ private:
     QSplitter *m_splitter;
     QSystemTrayIcon *m_trayIcon;
 #if !defined(Q_OS_MAC)
-    QAction *m_restoreAction;
+    QAction *m_showOrHideAction;
     QAction *m_quitAction;
     QMenu *m_trayIconMenu;
 #endif

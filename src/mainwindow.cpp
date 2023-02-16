@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_splitter(Q_NULLPTR),
       m_trayIcon(new QSystemTrayIcon(this)),
 #if !defined(Q_OS_MAC)
-      m_restoreAction(new QAction(tr("&Hide Notes"), this)),
+      m_showOrHideAction(new QAction(tr("&Hide Notes"), this)),
       m_quitAction(new QAction(tr("&Quit"), this)),
       m_trayIconMenu(new QMenu(this)),
 #endif
@@ -206,11 +206,11 @@ void MainWindow::setMainWindowVisibility(bool state)
         raise();
         activateWindow();
 #if !defined(Q_OS_MAC)
-        m_restoreAction->setText(tr("&Hide Notes"));
+        m_showOrHideAction->setText(tr("&Hide Notes"));
 #endif
     } else {
 #if !defined(Q_OS_MAC)
-        m_restoreAction->setText(tr("&Show Notes"));
+        m_showOrHideAction->setText(tr("&Show Notes"));
 #endif
         hide();
     }
@@ -437,7 +437,7 @@ void MainWindow::setupFonts()
 void MainWindow::setupTrayIcon()
 {
 #if !defined(Q_OS_MAC)
-    m_trayIconMenu->addAction(m_restoreAction);
+    m_trayIconMenu->addAction(m_showOrHideAction);
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
 #endif
@@ -698,10 +698,8 @@ void MainWindow::setupSignalsSlots()
 
 #if !defined(Q_OS_MAC)
     // System tray context menu action: "Show/Hide Notes"
-    connect(m_restoreAction, &QAction::triggered, this, [this]() {
-        setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
-                                || (qApp->applicationState() == Qt::ApplicationInactive));
-    });
+    connect(m_showOrHideAction, &QAction::triggered, this,
+            [this]() { setMainWindowVisibility(!isVisible()); });
     // System tray context menu action: "Quit"
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
     // Application state changed
@@ -2482,7 +2480,7 @@ void MainWindow::onGreenMaximizeButtonClicked()
     m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
     minimizeWindow();
-    m_restoreAction->setText(tr("&Show Notes"));
+    m_showOrHideAction->setText(tr("&Show Notes"));
 #else
     m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 
@@ -2507,7 +2505,7 @@ void MainWindow::onYellowMinimizeButtonClicked()
     minimizeWindow();
 
 #  if !defined(Q_OS_MAC)
-    m_restoreAction->setText(tr("&Show Notes"));
+    m_showOrHideAction->setText(tr("&Show Notes"));
 #  endif
 #endif
 }
