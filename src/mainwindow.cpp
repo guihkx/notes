@@ -53,7 +53,8 @@ MainWindow::MainWindow(QWidget *parent)
       m_splitter(Q_NULLPTR),
       m_trayIcon(new QSystemTrayIcon(this)),
 #if !defined(Q_OS_MAC)
-      m_restoreAction(new QAction(tr("&Hide Notes"), this)),
+      m_hideOrShowAction(new QAction(this)),
+      m_appropriateAction(SysTrayAction::Hide),
       m_quitAction(new QAction(tr("&Quit"), this)),
       m_trayIconMenu(new QMenu(this)),
 #endif
@@ -196,8 +197,49 @@ void MainWindow::InitData()
 void MainWindow::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if (reason == QSystemTrayIcon::Trigger) {
-        setMainWindowVisibility(!isVisible());
+        setMainWindowVisibility(windowState() == Qt::WindowMinimized || isHidden() || isObscured());
     }
+}
+
+/*!
+ * \brief Checks if there's a Qt widget at a specific screen cordinate,
+ *        and returns 'true' if it's our main window.
+ * \param coordinates Coordinates to a specific location of the main window.
+ */
+bool MainWindow::checkPoint(const QPoint &coordinates)
+{
+    QWidget *atW = QApplication::widgetAt(mapToGlobal(coordinates));
+
+    if (!atW)
+        return false;
+
+    return atW->window() == window();
+}
+
+/*!
+ * \brief Checks if our window is obscured by other windows.
+ * NOTE: This method is 'good enough', but it's not perfect:
+ * It can return 'true' if a small part of our window it's outside of screen bounds.
+ */
+bool MainWindow::isObscured()
+{
+    return !(checkPoint(QPoint(0, 0)) && checkPoint(QPoint(width() - 1, 0))
+             && checkPoint(QPoint(0, height() - 1)) && checkPoint(QPoint(width() - 1, height() - 1))
+             && checkPoint(QPoint(width() / 2, height() / 2)));
+}
+
+/*!
+ * \brief Fires just before the system tray context menu shows up.
+ */
+void MainWindow::onShowSystemTrayMenu()
+{
+    // Note: On well-behaved window managers, checking the app state is more than enough.
+    // However, based on my tests on GNOME 43, in some cases the app can get stuck in the
+    // 'active' state wrongfully, which is why we also use isObscured() as a workaround.
+    if (QApplication::applicationState() == Qt::ApplicationInactive || isObscured())
+        updateHideOrShowSystrayAction(SysTrayAction::Show);
+    else
+        updateHideOrShowSystrayAction(SysTrayAction::Hide);
 }
 
 /*!
@@ -210,13 +252,7 @@ void MainWindow::setMainWindowVisibility(bool state)
         show();
         raise();
         activateWindow();
-#if !defined(Q_OS_MAC)
-        m_restoreAction->setText(tr("&Hide Notes"));
-#endif
     } else {
-#if !defined(Q_OS_MAC)
-        m_restoreAction->setText(tr("&Show Notes"));
-#endif
         hide();
     }
 }
@@ -446,7 +482,8 @@ void MainWindow::setupFonts()
 void MainWindow::setupTrayIcon()
 {
 #if !defined(Q_OS_MAC)
-    m_trayIconMenu->addAction(m_restoreAction);
+    updateHideOrShowSystrayAction(SysTrayAction::Hide);
+    m_trayIconMenu->addAction(m_hideOrShowAction);
     m_trayIconMenu->addSeparator();
     m_trayIconMenu->addAction(m_quitAction);
 #endif
@@ -526,15 +563,7 @@ void MainWindow::setupKeyboardShortcuts()
         // from taking 'N' from shortcut
         m_textEdit->setDisabled(true);
         m_searchEdit->setDisabled(true);
-        setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
-                                || qApp->applicationState() == Qt::ApplicationInactive);
-        if (isHidden() || windowState() == Qt::WindowMinimized
-            || qApp->applicationState() == Qt::ApplicationInactive)
-#ifdef __APPLE__
-            this->raise();
-#else
-            this->activateWindow();
-#endif
+        setMainWindowVisibility(windowState() == Qt::WindowMinimized || isHidden() || isObscured());
         m_textEdit->setDisabled(false);
         m_searchEdit->setDisabled(false);
     });
@@ -709,10 +738,14 @@ void MainWindow::setupSignalsSlots()
 
 #if !defined(Q_OS_MAC)
     // System tray context menu action: "Show/Hide Notes"
-    connect(m_restoreAction, &QAction::triggered, this, [this]() {
-        setMainWindowVisibility(isHidden() || windowState() == Qt::WindowMinimized
-                                || (qApp->applicationState() == Qt::ApplicationInactive));
+    connect(m_hideOrShowAction, &QAction::triggered, this, [this]() {
+        if (m_appropriateAction == SysTrayAction::Hide)
+            setMainWindowVisibility(false);
+        else
+            setMainWindowVisibility(true);
     });
+    // Updates the label on the "Show/Hide Notes" system tray menu action
+    connect(m_trayIconMenu, &QMenu::aboutToShow, this, &MainWindow::onShowSystemTrayMenu);
     // System tray context menu action: "Quit"
     connect(m_quitAction, &QAction::triggered, this, &MainWindow::QuitApplication);
     // Application state changed
@@ -2497,7 +2530,6 @@ void MainWindow::onGreenMaximizeButtonClicked()
     m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/windows_minimize_regular.png")));
 
     minimizeWindow();
-    m_restoreAction->setText(tr("&Show Notes"));
 #else
     m_greenMaximizeButton->setIcon(QIcon(QStringLiteral(":images/green.png")));
 
@@ -2520,10 +2552,6 @@ void MainWindow::onYellowMinimizeButtonClicked()
     m_yellowMinimizeButton->setIcon(QIcon(QStringLiteral(":images/yellow.png")));
 
     minimizeWindow();
-
-#  if !defined(Q_OS_MAC)
-    m_restoreAction->setText(tr("&Show Notes"));
-#  endif
 #endif
 }
 
@@ -2969,6 +2997,19 @@ void MainWindow::updateFrame()
     } else {
         setWindowButtonsVisible(true);
     }
+}
+
+void MainWindow::updateHideOrShowSystrayAction(MainWindow::SysTrayAction action)
+{
+#if !defined(Q_OS_MACOS)
+    if (action == SysTrayAction::Hide) {
+        m_hideOrShowAction->setText(tr("&Hide Notes"));
+        m_appropriateAction = SysTrayAction::Hide;
+    } else {
+        m_hideOrShowAction->setText(tr("&Show Notes"));
+        m_appropriateAction = SysTrayAction::Show;
+    }
+#endif
 }
 
 /*!

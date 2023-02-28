@@ -121,6 +121,7 @@ protected:
 private:
     Ui::MainWindow *ui;
 
+    enum class SysTrayAction { Hide, Show };
     QSettings *m_settingsDatabase;
     QToolButton *m_clearButton;
     QPushButton *m_greenMaximizeButton;
@@ -138,7 +139,8 @@ private:
     QSplitter *m_splitter;
     QSystemTrayIcon *m_trayIcon;
 #if !defined(Q_OS_MAC)
-    QAction *m_restoreAction;
+    QAction *m_hideOrShowAction;
+    SysTrayAction m_appropriateAction;
     QAction *m_quitAction;
     QMenu *m_trayIconMenu;
 #endif
@@ -256,6 +258,7 @@ private slots:
     void InitData();
 
     void onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void onShowSystemTrayMenu();
     void onNewNoteButtonPressed();
     void onNewNoteButtonClicked();
     void onTrashButtonPressed();
@@ -315,6 +318,9 @@ private slots:
     void setNoteListLoading();
     void selectAllNotesInList();
     void updateFrame();
+    bool checkPoint(const QPoint &p);
+    bool isObscured();
+    void updateHideOrShowSystrayAction(MainWindow::SysTrayAction action);
 
 signals:
     void requestNodesTree();
