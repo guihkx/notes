@@ -76,11 +76,11 @@ jobs:
         include:
           - os: macos-11
             qt-version: 5.15.2
-            build-type: release
+            build-type: Release
 
           - os: macos-11
             qt-version: 6.5.2
-            build-type: release
+            build-type: Release
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -224,5 +224,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
+          name: ${{ runner.os }}-${{ steps.vars.outputs.artifact_name }}-${{ matrix.build-type }}
           path: build/${{ steps.vars.outputs.file_name }}

@@ -19,16 +19,16 @@ jobs:
           # Ubuntu's release cycle: https://wiki.ubuntu.com/Releases
           - os: ubuntu-20.04
             qt-version-major: 5
-            build-type: release
+            build-type: Release
 
           - os: ubuntu-22.04
             qt-version-major: 6
-            build-type: release
+            build-type: Release
 
           - os: ubuntu-20.04
             container: ubuntu:23.04
             qt-version-major: 6
-            build-type: release
+            build-type: Release
     steps:
       - name: Install other dependencies in docker container
         # - sudo: Used by most GitHub actions to install things.
@@ -109,7 +109,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.deb.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
+          name: ${{ runner.os }}-${{ steps.deb.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.deb.outputs.path }}
 
   rpm:
@@ -124,12 +124,12 @@ jobs:
             # Fedora's release cycle: https://docs.fedoraproject.org/en-US/releases/lifecycle/
             container: fedora:37
             qt-version-major: 6
-            build-type: release
+            build-type: Release
 
           - os: ubuntu-20.04
             container: opensuse/leap:15
             qt-version-major: 6
-            build-type: release
+            build-type: Release
     steps:
       - name: Install build dependencies
         env:
@@ -212,7 +212,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.rpm.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
+          name: ${{ runner.os }}-${{ steps.rpm.outputs.name }}-qt${{ matrix.qt-version-major }}-${{ steps.vars.outputs.distro_name }}-${{ matrix.build-type }}
           path: ${{ steps.rpm.outputs.path }}
 
   # Build the AppImage using official Qt releases, downloaded by aqtinstall.
@@ -230,12 +230,12 @@ jobs:
         include:
           - os: ubuntu-20.04
             container: ubuntu:20.04
-            build-type: release
+            build-type: Release
             qt-version: 5.15.2
 
           - os: ubuntu-20.04
             container: ubuntu:20.04
-            build-type: release
+            build-type: Release
             qt-version: 6.4.3
     steps:
       - name: Install other dependencies in docker container
@@ -405,7 +405,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
+          name: ${{ runner.os }}-${{ steps.vars.outputs.artifact_name }}-${{ matrix.build-type }}
           path: build/${{ steps.vars.outputs.file_name }}
 
   snap:
@@ -448,5 +448,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.snap.outputs.name }}.snap
+          name: ${{ runner.os }}-${{ steps.snap.outputs.name }}.snap
           path: ${{ steps.snap.outputs.path }}

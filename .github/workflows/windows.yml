@@ -17,17 +17,17 @@ jobs:
           - os: windows-2019
             arch: x64
             qt-version: 5.15.2
-            build-type: release
+            build-type: Release
 
           - os: windows-2019
             arch: x86
             qt-version: 5.15.2
-            build-type: release
+            build-type: Release
 
           - os: windows-2019
             arch: x64
             qt-version: 6.4.3
-            build-type: release
+            build-type: Release
     outputs:
       version: ${{ steps.vars.outputs.version }}
     steps:
@@ -150,7 +150,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: ${{ steps.vars.outputs.artifact_name }}-${{ runner.os }}-${{ matrix.build-type }}
+          name: ${{ runner.os }}-${{ steps.vars.outputs.artifact_name }}-${{ matrix.build-type }}
           path: build\bin
 
   unified-installer:
@@ -172,7 +172,7 @@ jobs:
       - name: Ensure a 64-bit Qt 6 build is present
         run: |
           Set-Location artifacts
-          $x64_build = Get-ChildItem -Filter '*Qt6*-x64-Windows-release' -Attributes Directory |
+          $x64_build = Get-ChildItem -Filter '*Qt6*-x64-Windows-Release' -Attributes Directory |
               Sort-Object -Property @{Expression = "Name"; Descending = $true} |
               Select-Object -First 1
           if (!$x64_build) {
@@ -183,7 +183,7 @@ jobs:
       - name: Ensure a 32-bit Qt 5 build is present
         run: |
           Set-Location artifacts
-          $x86_build = Get-ChildItem -Filter '*Qt5*-x86-Windows-release' -Attributes Directory |
+          $x86_build = Get-ChildItem -Filter '*Qt5*-x86-Windows-Release' -Attributes Directory |
               Sort-Object -Property @{Expression = "Name"; Descending = $true} |
               Select-Object -First 1
           if (!$x86_build) {
@@ -239,5 +239,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
-          name: NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-${{ runner.os }}-release
+          name: ${{ runner.os }}-NotesSetup_${{ needs.build-aqtinstall.outputs.version }}-Release
           path: artifacts\installer
