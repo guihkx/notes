@@ -36,13 +36,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
 
       - name: Check if Dockerfile has been modified
         id: docker_image
         run: |
           set -ex
-          if ! git diff --compact-summary --exit-code ${{ github.event.pull_request.base.sha || github.event.before }} -- 'Dockerfiles/${{ matrix.image }}'
+          git remote add upstream https://github.com/nuttyartist/notes.git
+          git fetch upstream master
+          # NOTE: The following should give us the previous commit hash of the base branch, but that will
+          #       only work reliably for 'push' and pull_request events. For workflow_dispatch events, we
+          #       have to fallback to the default branch ('master'), until a better solution is found...
+          previous_ref=${{ github.event.pull_request.base.sha || github.event.before || 'upstream/master' }}
+          if ! git diff --compact-summary --exit-code "${previous_ref}" -- 'Dockerfiles/${{ matrix.image }}'
           then
               needs_rebuild=true
           elif ! docker pull '${{ env.REGISTRY }}/guihkx/notes:${{ matrix.image }}'

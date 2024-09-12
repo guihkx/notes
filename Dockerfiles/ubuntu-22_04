@@ -19,5 +19,7 @@ RUN git config --global --add safe.directory /src
 # docker run -v $(pwd):/src -it --rm ...
 WORKDIR /src
 
+RUN echo 'modify this dockerfile to trigger a rebuild'
+
 ADD --chmod=755 ./Dockerfiles/ubuntu_deb_entrypoint.sh /usr/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
