@@ -63,6 +63,7 @@ while getopts 'd:t:punc:b:o:' OPTION; do
     msg "Note: Overriding CPack options: '${CPACK_OPTIONS}' -> '${OPTARG}'"
     CPACK_OPTIONS="${OPTARG}"
     ;;
+  *) ;;
   esac
 done
 
@@ -73,12 +74,15 @@ CPACK_OPTIONS="${CPACK_OPTIONS:--G RPM}"
 set -x
 
 msg 'Running CMake (configure)...'
+# shellcheck disable=SC2086
 cmake ${CMAKE_CONFIG_OPTIONS}
 
 msg 'Running CMake (build)...'
+# shellcheck disable=SC2086
 cmake ${CMAKE_BUILD_OPTIONS}
 
 msg 'Running CPack...'
+# shellcheck disable=SC2086
 (cd "${BUILD_DIR}" && cpack ${CPACK_OPTIONS})
 
 msg 'Running rpmlint...'

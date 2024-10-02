@@ -79,6 +79,7 @@ while getopts 'd:t:punc:b:i:a:l:f:' OPTION; do
     msg "Note: Overriding linuxdeploy's final run options: '${LINUXDEPLOY_FINAL_OPTIONS}' -> '${OPTARG}'"
     LINUXDEPLOY_FINAL_OPTIONS="${OPTARG}"
     ;;
+  *) ;;
   esac
 done
 
@@ -91,15 +92,19 @@ LINUXDEPLOY_FINAL_OPTIONS="${LINUXDEPLOY_FINAL_OPTIONS:-${LINUXDEPLOY_FIRST_OPTI
 set -x
 
 msg 'Running CMake (configure)...'
+# shellcheck disable=SC2086
 cmake ${CMAKE_CONFIG_OPTIONS}
 
 msg 'Running CMake (build)...'
+# shellcheck disable=SC2086
 cmake ${CMAKE_BUILD_OPTIONS}
 
 msg 'Running CMake (install)...'
+# shellcheck disable=SC2086
 DESTDIR="${BUILD_DIR}/${LINUXDEPLOY_APPDIR}" cmake ${CMAKE_INSTALL_OPTIONS}
 
 msg 'Running linuxdeploy (first run)...'
+# shellcheck disable=SC2086
 (cd "${BUILD_DIR}" && linuxdeploy ${LINUXDEPLOY_FIRST_OPTIONS})
 
 msg 'Removing unused libraries in AppDir...'
@@ -137,6 +142,7 @@ appimage_name="${artifact_name}.AppImage"
 msg 'Running linuxdeploy (final run)...'
 export LINUXDEPLOY_OUTPUT_VERSION="${app_version}"
 export OUTPUT="${appimage_name}"
+# shellcheck disable=SC2086
 (cd "${BUILD_DIR}" && linuxdeploy ${LINUXDEPLOY_FINAL_OPTIONS})
 
 # Needed for GitHub Actions.
