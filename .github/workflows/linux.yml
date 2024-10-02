@@ -69,7 +69,12 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: |
+          docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" \
+            -v "$(pwd):/src" \
+            -e 'PRO_VERSION=OFF' \
+            -e 'GIT_REVISION=${{ github.ref_type == 'tag' && 'OFF' || 'ON' }}' \
+            -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
 
       - name: Upload deb package
         uses: actions/upload-artifact@v4
@@ -157,7 +162,12 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: |
+          docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" \
+            -v "$(pwd):/src" \
+            -e 'PRO_VERSION=OFF' \
+            -e 'GIT_REVISION=${{ github.ref_type == 'tag' && 'OFF' || 'ON' }}' \
+            -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
 
       - name: Upload rpm package
         uses: actions/upload-artifact@v4
@@ -243,7 +253,12 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: |
+          docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" \
+            -v "$(pwd):/src" \
+            -e 'PRO_VERSION=OFF' \
+            -e 'GIT_REVISION=${{ github.ref_type == 'tag' && 'OFF' || 'ON' }}' \
+            -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}'
 
       - name: (FIXME) Run qmllint
         if: endsWith(matrix.image, 'qt6')

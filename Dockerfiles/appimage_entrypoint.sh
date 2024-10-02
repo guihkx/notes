@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # -d <dir>: Set build directory (overrides $BUILD_DIR below).
 # -t <type>: Set build type (overrides $BUILD_TYPE below).
-# -p: Enable 'Pro' features (overrides $PRO_VERSION below).
+# -p: Disable 'Pro' features (overrides $PRO_VERSION below).
 # -u: Enable the update checker feature (overrides $UPDATE_CHECKER below).
 # -n: Do not add the current git revision to the app's version (overrides $GIT_REVISION below).
 # -c <options>: Options passed to CMake's configure stage (overrides $CMAKE_CONFIG_OPTIONS below).
@@ -21,7 +21,7 @@ set -euo pipefail
 # Hint: Pre-existing environment variables with the same name as the variables below will take precedence.
 BUILD_DIR="${BUILD_DIR:-build}"
 BUILD_TYPE="${BUILD_TYPE:-release}"
-PRO_VERSION="${PRO_VERSION:-OFF}"
+PRO_VERSION="${PRO_VERSION:-ON}"
 UPDATE_CHECKER="${UPDATE_CHECKER:-ON}"
 GIT_REVISION="${GIT_REVISION:-ON}"
 LINUXDEPLOY_APPDIR="${LINUXDEPLOY_APPDIR:-Notes}"
@@ -44,8 +44,8 @@ while getopts 'd:t:punc:b:i:a:l:f:' OPTION; do
     BUILD_TYPE="${OPTARG}"
     ;;
   p)
-    msg "Note: Enabling 'Pro' features."
-    PRO_FEATURES='ON'
+    msg "Note: Disabling 'Pro' features."
+    PRO_VERSION='OFF'
     ;;
   u)
     msg "Note: Enabling the update checker feature."
