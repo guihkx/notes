@@ -17,8 +17,12 @@ jobs:
       - name: Set up cmake-format
         run: pip install cmakelang
 
-      - name: Run clang-format
-        run: find src/ -iregex '.*\.\(cpp\|h\|mm\)$' -print0 | xargs -n 1 -0 clang-format -style=file --dry-run --Werror --color=true
+      - name: Versions of clang-format
+        run: |
+          clang-format-16 --version && clang-format-17 --version && clang-format-18 --version
+
+      - name: Run clang-format-18
+        run: find src/ -iregex '.*\.\(cpp\|h\|mm\)$' -print0 | xargs -n 1 -0 clang-format-18 -style=file --dry-run --Werror --color=true
 
       - name: Run cmake-format
         run: |
