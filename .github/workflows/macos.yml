@@ -41,7 +41,7 @@ jobs:
               -G Ninja -B build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
               -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)" \
-              -DPRO_VERSION=OFF
+              -DPRO_VERSION=ON
           cmake --build build
 
   # NOTE: This job uses a fixed Qt version (set in the 'qt-version' key below)!

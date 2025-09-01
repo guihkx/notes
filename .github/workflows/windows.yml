@@ -73,7 +73,7 @@ jobs:
               -B build -G Ninja `
               -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
               -DGIT_REVISION=${{ github.ref_type != 'tag' && 'ON' || 'OFF' }} `
-              -DPRO_VERSION=OFF
+              -DPRO_VERSION=ON
           cmake --build build
 
       - name: (FIXME) Run qmllint

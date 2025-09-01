@@ -65,7 +65,7 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: docker run --rm -e PRO_VERSION=ON -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: Upload deb package
         uses: actions/upload-artifact@v4
@@ -151,7 +151,7 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: docker run --rm -e PRO_VERSION=ON -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: Upload rpm package
         uses: actions/upload-artifact@v4
@@ -231,7 +231,7 @@ jobs:
 
       - name: Build, package and lint
         id: build
-        run: docker run --rm -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
+        run: docker run --rm -e PRO_VERSION=ON -v "${GITHUB_OUTPUT}:/GITHUB_OUTPUT" -v "$(pwd):/src" -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' -t ${{ matrix.build-type }} ${{ github.ref_type == 'tag' && '-n' || ' ' }}
 
       - name: (FIXME) Run qmllint
         run: docker run --rm -v "$(pwd):/src" --entrypoint '' -t '${{ env.REGISTRY }}/nuttyartist/notes:${{ matrix.image }}' cmake --build build --target all_qmllint || true
